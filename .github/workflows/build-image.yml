@@ -6,6 +6,7 @@ on:
 
 env:
   AWS_ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  AWS_IMAGE_NAME: ${{ env.AWS_ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO_NAME }}
 
 jobs:
   build-and-upload:
@@ -33,7 +34,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           # List of Docker images to use as base name for tags
-          images: ${{ env.AWS_ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO_NAME }}
+          images: ${{ env.AWS_IMAGE_NAME }}
           tags: |
             type=edge,enable=true,branch=$repo.default_branch
             type=raw,value=latest,enable={{is_default_branch}}
@@ -44,13 +45,15 @@ jobs:
         env:
           ECR_REGISTRY: ${{ env.AWS_ECR_REGISTRY }}
           ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPO_NAME }}
-          IMAGE_TAG: ${{ steps.meta.outputs.tags }}
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+          IMAGE_NAME: ${{ env.AWS_IMAGE_NAME }}
         run: |
-          # Build a docker container and
-          # push it to ECR so that it can
-          # be deployed to ECS.
-          echo "image_tag: ${IMAGE_TAG}\n\n"
+          # Build a docker container and push it to ECR 
+          ECR_IMAGE_TAGS=""
 
-          docker build -t ${IMAGE_TAG} .
-          docker push ${IMAGE_TAG}
-          echo "image=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          for TAG in ${IMAGE_TAGS[@]}; do
+            ECR_IMAGE_TAGS="${IMAGE_TAGS} -t ${TAG}"
+          done
+
+          docker build -t ${ECR_IMAGE_TAGS} .
+          docker push -a ${IMAGE_NAME}
