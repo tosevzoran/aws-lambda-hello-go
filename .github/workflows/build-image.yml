@@ -1,0 +1,17 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Configure AWS Credentials" 
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          # AWS Region
+          aws-region: eu-central-1
+          # Use the provided credentials to assume an IAM role and configure the Actions environment with the assumed role credentials rather than with the provided credentials
+          role-to-assume: arn:aws:iam::481972979897:role/lambda-deployer
