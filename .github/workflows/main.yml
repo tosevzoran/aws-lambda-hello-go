@@ -1,0 +1,7 @@
+- name: "Configure AWS Credentials" Action For GitHub Actions
+  uses: aws-actions/configure-aws-credentials@v1
+  with:
+    # AWS Region
+    aws-region: eu-central-1
+    # Use the provided credentials to assume an IAM role and configure the Actions environment with the assumed role credentials rather than with the provided credentials
+    role-to-assume: arn:aws:iam::481972979897:role/lambda-deployer
