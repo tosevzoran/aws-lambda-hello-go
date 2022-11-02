@@ -46,7 +46,7 @@ jobs:
           IMAGE_NAME: ${{ env.AWS_IMAGE_NAME }}
         run: |
           # Build the docker image
-          docker build ${IMAGE_NAME} .
+          docker build -t ${IMAGE_NAME} .
 
           # Add the image tags from the meta step
           for TAG in ${IMAGE_TAGS[@]}; do
