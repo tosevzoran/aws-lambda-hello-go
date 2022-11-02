@@ -45,12 +45,13 @@ jobs:
           IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
           IMAGE_NAME: ${{ env.AWS_IMAGE_NAME }}
         run: |
-          # Build a docker container and push it to ECR 
-          ECR_IMAGE_TAGS=""
+          # Build the docker image
+          docker build ${IMAGE_NAME} .
 
+          # Add the image tags from the meta step
           for TAG in ${IMAGE_TAGS[@]}; do
-            ECR_IMAGE_TAGS="${IMAGE_TAGS} -t ${TAG}"
+            docker image tag ${IMAGE_NAME} ${TAG}
           done
 
-          docker build -t ${ECR_IMAGE_TAGS} .
+          # Push the image with all tags
           docker push -a ${IMAGE_NAME}
