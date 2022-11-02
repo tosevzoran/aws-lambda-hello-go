@@ -4,6 +4,9 @@ on:
     branches:
       - main
       
+env:
+  AWS_ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
 jobs:
   build-and-upload:
     runs-on: ubuntu-latest
@@ -11,10 +14,37 @@ jobs:
       id-token: write # This is required for requesting the JWT
 
     steps:
-      - name: "Configure AWS Credentials" 
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+      
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           # AWS Region
-          aws-region: eu-central-1
+          aws-region: ${{ secrets.AWS_REGION }}
           # Use the provided credentials to assume an IAM role and configure the Actions environment with the assumed role credentials rather than with the provided credentials
-          role-to-assume: arn:aws:iam::481972979897:role/lambda-deployer
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/lambda-deployer
+          
+      - name: Login to Amazon ECR Login
+        uses: aws-actions/amazon-ecr-login@v1
+        
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          # List of Docker images to use as base name for tags
+          images: ${{ env.AWS_ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO_NAME }}
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ env.AWS_ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ AWS_ECR_REPO_NAME }}
+          IMAGE_TAG: ${{ meta.output.tags }}
+        run: |
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
