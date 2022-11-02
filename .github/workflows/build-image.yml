@@ -28,25 +28,26 @@ jobs:
       - name: Login to Amazon ECR Login
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          # List of Docker images to use as base name for tags
-          images: ${{ env.AWS_ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha,format=short
+      # - name: Extract metadata (tags, labels) for Docker
+      #   id: meta
+      #   uses: docker/metadata-action@v4
+      #   with:
+      #     # List of Docker images to use as base name for tags
+      #     images: ${{ env.AWS_ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO_NAME }}
+      #     tags: |
+      #       type=ref,event=branch
+      #       type=ref,event=pr
+      #       type=semver,pattern={{version}}
+      #       type=semver,pattern={{major}}.{{minor}}
+      #       type=sha,format=short
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ env.AWS_ECR_REGISTRY }}
           ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPO_NAME }}
-          IMAGE_TAG: ${{ steps.meta.output.tags }}
+          # IMAGE_TAG: ${{ steps.meta.output.tags }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           # Build a docker container and
           # push it to ECR so that it can
