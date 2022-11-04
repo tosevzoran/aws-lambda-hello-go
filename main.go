@@ -11,7 +11,7 @@ type MyEvent struct {
 	Name string `json:"name"`
 }
 
-// Lambda handler function
+// Lambda handler
 func HandleRequest(ctx context.Context, event MyEvent) (string, error) {
 	return fmt.Sprintf("Hello %s!", event.Name), nil
 }
